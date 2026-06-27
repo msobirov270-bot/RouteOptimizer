@@ -9,7 +9,7 @@ jobs:
   build-apk:
     runs-on: ubuntu-latest
     permissions:
-      contents: write  # Важно: разрешает создавать релизы
+      contents: write
 
     steps:
     - name: Checkout code
@@ -49,6 +49,10 @@ jobs:
 
     - name: Build APK with Flet
       run: flet build apk --yes --verbose
+
+    - name: List files in build/apk (debug)
+      run: |
+        ls -la build/apk/ || echo "build/apk folder not found"
 
     - name: Upload APK to GitHub Release
       uses: softprops/action-gh-release@v2
