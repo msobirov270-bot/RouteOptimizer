@@ -21,13 +21,7 @@ jobs:
     - name: Install system dependencies
       run: |
         sudo apt-get update
-        sudo apt-get install -y \
-          libgtk-3-dev \
-          mesa-utils \
-          ninja-build \
-          cmake \
-          curl \
-          unzip
+        sudo apt-get install -y libgtk-3-dev mesa-utils ninja-build cmake curl unzip
 
     - name: Install Python dependencies
       run: |
@@ -46,23 +40,31 @@ jobs:
         cmdline-tools-version: 'latest'
 
     - name: Accept Android SDK licenses
-      run: |
-        yes | flutter doctor --android-licenses
+      run: yes | flutter doctor --android-licenses
 
     - name: Enable Linux development
-      run: |
-        flutter config --enable-linux-desktop
+      run: flutter config --enable-linux-desktop
 
     - name: Build APK with Flet
-      run: |
-        flet build apk --yes --verbose
+      run: flet build apk --yes --verbose
 
-    - name: Upload APK to GitHub Release
-      uses: softprops/action-gh-release@v2
+    - name: Create GitHub Release
+      id: create_release
+      uses: actions/create-release@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       with:
-        files: build/apk/app-release.apk
         tag_name: v1.0.${{ github.run_number }}
-        name: Release v1.0.${{ github.run_number }}
+        release_name: Release v1.0.${{ github.run_number }}
         draft: false
         prerelease: false
-        generate_release_notes: true
+
+    - name: Upload APK to Release
+      uses: actions/upload-release-asset@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        upload_url: ${{ steps.create_release.outputs.upload_url }}
+        asset_path: build/apk/app-release.apk
+        asset_name: RouteOptimizer.apk
+        asset_content_type: application/vnd.android.package-archive
