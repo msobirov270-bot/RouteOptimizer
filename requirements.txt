@@ -2,4 +2,3 @@ flet>=0.85.0
 requests
 folium
 geopy
-ortools

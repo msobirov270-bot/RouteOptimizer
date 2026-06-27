@@ -3,8 +3,6 @@ import requests
 import folium
 from geopy.geocoders import Nominatim
 from geopy.distance import geodesic
-from ortools.constraint_solver import routing_enums_pb2
-from ortools.constraint_solver import pywrapcp
 import os
 import json
 import threading
@@ -67,7 +65,7 @@ class RouteOptimizerApp:
     def __init__(self):
         self.config = load_config()
         self.running = False
-        self.last_filenames = []  # Храним имена созданных карт
+        self.last_filenames = []
 
     def geocode_address(self, address):
         geolocator = Nominatim(user_agent="route_optimizer")
@@ -106,6 +104,10 @@ class RouteOptimizerApp:
             return durations, None
 
     def optimize_multi_route(self, durations, num_vehicles=2, start_index=0):
+        """
+        Упрощенная версия оптимизации маршрутов (без ORTools)
+        Распределяет точки между курьерами по порядку
+        """
         n = len(durations)
 
         if num_vehicles > n - 1:
@@ -113,64 +115,33 @@ class RouteOptimizerApp:
         if num_vehicles < 1:
             num_vehicles = 1
 
-        manager = pywrapcp.RoutingIndexManager(n, num_vehicles, start_index)
-        routing = pywrapcp.RoutingModel(manager)
-
-        def time_callback(from_index, to_index):
-            from_node = manager.IndexToNode(from_index)
-            to_node = manager.IndexToNode(to_index)
-            return int(durations[from_node][to_node])
-
-        transit_callback_index = routing.RegisterTransitCallback(time_callback)
-        routing.SetArcCostEvaluatorOfAllVehicles(transit_callback_index)
-
-        max_orders = (n - 1 + num_vehicles - 1) // num_vehicles
-
-        def demand_callback(from_index):
-            from_node = manager.IndexToNode(from_index)
-            return 0 if from_node == start_index else 1
-
-        demand_callback_index = routing.RegisterUnaryTransitCallback(demand_callback)
-        routing.AddDimensionWithVehicleCapacity(
-            demand_callback_index,
-            0,
-            [max_orders] * num_vehicles,
-            True,
-            'Capacity'
-        )
-
-        search_parameters = pywrapcp.DefaultRoutingSearchParameters()
-        search_parameters.first_solution_strategy = routing_enums_pb2.FirstSolutionStrategy.PATH_CHEAPEST_ARC
-        search_parameters.time_limit.seconds = 10
-
-        solution = routing.SolveWithParameters(search_parameters)
-
-        if not solution:
-            return None, 0, 0
-
         all_routes = []
         total_time = 0
         max_route_time = 0
 
+        # Распределяем точки между курьерами по очереди
+        points = list(range(1, n))  # все точки кроме стартовой
+        points_per_vehicle = len(points) // num_vehicles
+        remainder = len(points) % num_vehicles
+
+        idx = 0
         for vehicle_id in range(num_vehicles):
-            index = routing.Start(vehicle_id)
-            route = []
+            count = points_per_vehicle + (1 if vehicle_id < remainder else 0)
+            if count == 0:
+                continue
+
+            route = [start_index] + points[idx:idx + count] + [start_index]
+            idx += count
+
+            # Считаем время
             route_time = 0
+            for i in range(len(route) - 1):
+                route_time += durations[route[i]][route[i + 1]]
 
-            while not routing.IsEnd(index):
-                route.append(manager.IndexToNode(index))
-                previous_index = index
-                index = solution.Value(routing.NextVar(index))
-                if not routing.IsEnd(index):
-                    route_time += durations[manager.IndexToNode(previous_index)][manager.IndexToNode(index)]
-
-            route.append(manager.IndexToNode(index))
-
-            if len(route) > 2:
-                all_routes.append(route)
-                total_time += route_time
-                if route_time > max_route_time:
-                    max_route_time = route_time
+            all_routes.append(route)
+            total_time += route_time
+            if route_time > max_route_time:
+                max_route_time = route_time
 
         return all_routes, total_time, max_route_time
 
@@ -248,7 +219,7 @@ class RouteOptimizerApp:
                 total_all_time = 0
                 max_time = 0
                 max_time_route = 0
-                self.last_filenames = []  # Очищаем список
+                self.last_filenames = []
 
                 for vehicle_idx, route_indices in enumerate(routes):
                     if len(route_indices) <= 1:
@@ -302,8 +273,7 @@ class RouteOptimizerApp:
                 max_seconds = int(max_time % 60)
 
                 add_output(f"   ⏱️  Общее время всех курьеров: {total_minutes} мин {total_seconds} сек\n")
-                add_output(
-                    f"   ⏱️  Самый долгий маршрут (Курьер {max_time_route}): {max_minutes} мин {max_seconds} сек\n")
+                add_output(f"   ⏱️  Самый долгий маршрут (Курьер {max_time_route}): {max_minutes} мин {max_seconds} сек\n")
                 add_output(f"   📦 Всего заказов: {len(addresses)}\n")
                 add_output(f"   🚚 Всего курьеров: {num_vehicles}\n")
                 add_output("=" * 70 + "\n")
@@ -315,8 +285,6 @@ class RouteOptimizerApp:
                 add_output("\n📂 Нажмите кнопку 'Открыть карту' ниже, чтобы посмотреть маршрут на карте\n")
 
                 update_status("✅ Маршруты построены!")
-
-                # Обновляем кнопки для открытия карт
                 update_map_buttons(self.last_filenames)
 
         except Exception as e:
@@ -333,21 +301,13 @@ def main(page: ft.Page):
     page.window_height = 800
     page.window_resizable = True
 
-    # Загружаем сохранённые настройки
     config = load_config()
-
-    # Переменные состояния
     addresses_list = []
     app = RouteOptimizerApp()
-
-    # Переменная для кнопок карт
     map_buttons_container = ft.Column(spacing=5)
 
-    # ===== ФУНКЦИЯ ДЛЯ ОТКРЫТИЯ КАРТ =====
     def open_map(filename):
-        """Открывает HTML-файл в браузере"""
         try:
-            # Получаем абсолютный путь
             file_path = os.path.abspath(filename)
             if os.path.exists(file_path):
                 webbrowser.open(file_path)
@@ -364,7 +324,6 @@ def main(page: ft.Page):
             page.update()
 
     def update_map_buttons(filenames):
-        """Создаёт кнопки для открытия каждой карты"""
         map_buttons_container.controls.clear()
         if filenames:
             map_buttons_container.controls.append(
@@ -381,7 +340,6 @@ def main(page: ft.Page):
                 )
         page.update()
 
-    # ===== СТАРТОВЫЙ АДРЕС =====
     start_address = ft.TextField(
         label="🏠 Стартовый адрес",
         hint_text="Например: Москва, Тверская, 1",
@@ -396,7 +354,6 @@ def main(page: ft.Page):
         width=150
     )
 
-    # ===== СПИСОК ЗАКАЗОВ =====
     point_address = ft.TextField(
         label="📍 Адрес заказа",
         hint_text="Например: Москва, Арбат, 20",
@@ -448,7 +405,6 @@ def main(page: ft.Page):
         page.snack_bar.open = True
         page.update()
 
-    # ===== ВЫВОД РЕЗУЛЬТАТОВ =====
     output_text = ft.TextField(
         label="📊 Результаты",
         multiline=True,
@@ -469,7 +425,6 @@ def main(page: ft.Page):
         status_text.value = text
         page.update()
 
-    # ===== ОЧИСТКА ВСЕХ ЗАКАЗОВ =====
     def clear_all_orders(e):
         addresses_list.clear()
         update_orders_display()
@@ -482,7 +437,6 @@ def main(page: ft.Page):
         page.snack_bar.open = True
         page.update()
 
-    # ===== ЗАПУСК ОПТИМИЗАЦИИ =====
     def run_optimization(e):
         start = start_address.value.strip()
         if not start:
@@ -513,17 +467,13 @@ def main(page: ft.Page):
             return
 
         start_normalized = normalize_address(start)
-
-        # Сохраняем настройки
         save_config(start_normalized, num_vehicles)
 
-        # Очищаем вывод и кнопки карт
         output_text.value = ""
         map_buttons_container.controls.clear()
         status_text.value = "⏳ Идёт расчёт..."
         page.update()
 
-        # Запускаем в отдельном потоке
         thread = threading.Thread(
             target=app.optimize,
             args=(start_normalized, addresses_list.copy(), num_vehicles, update_status, add_output, update_map_buttons)
@@ -531,11 +481,9 @@ def main(page: ft.Page):
         thread.daemon = True
         thread.start()
 
-    # ===== СОЗДАНИЕ ИНТЕРФЕЙСА =====
     page.add(
         ft.Container(
             content=ft.Column([
-                # Информация
                 ft.Card(
                     content=ft.Container(
                         content=ft.Text(
@@ -545,8 +493,6 @@ def main(page: ft.Page):
                         padding=10
                     )
                 ),
-
-                # Стартовый адрес
                 ft.Card(
                     content=ft.Container(
                         content=ft.Column([
@@ -560,8 +506,6 @@ def main(page: ft.Page):
                         padding=10
                     )
                 ),
-
-                # Заказы
                 ft.Card(
                     content=ft.Container(
                         content=ft.Column([
@@ -592,16 +536,12 @@ def main(page: ft.Page):
                         padding=10
                     )
                 ),
-
-                # Кнопка запуска
                 ft.ElevatedButton(
                     "🚀 ПОСТРОИТЬ ОПТИМАЛЬНЫЕ МАРШРУТЫ",
                     on_click=run_optimization,
                     width=page.window_width - 40,
                     height=50
                 ),
-
-                # Результаты
                 ft.Card(
                     content=ft.Container(
                         content=ft.Column([
@@ -619,10 +559,8 @@ def main(page: ft.Page):
         )
     )
 
-    # Инициализация списка заказов
     update_orders_display()
 
 
-# ========== ЗАПУСК ==========
 if __name__ == "__main__":
     ft.run(main, view=ft.AppView.WEB_BROWSER)
