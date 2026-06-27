@@ -1,0 +1,259 @@
+<!DOCTYPE html>
+<html>
+<head>
+    
+    <meta http-equiv="content-type" content="text/html; charset=UTF-8" />
+    <script src="https://cdn.jsdelivr.net/npm/leaflet@1.9.3/dist/leaflet.js"></script>
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.2/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Leaflet.awesome-markers/2.0.2/leaflet.awesome-markers.js"></script>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/leaflet@1.9.3/dist/leaflet.css"/>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.2/dist/css/bootstrap.min.css"/>
+    <link rel="stylesheet" href="https://netdna.bootstrapcdn.com/bootstrap/3.0.0/css/bootstrap-glyphicons.css"/>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.2.0/css/all.min.css"/>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/Leaflet.awesome-markers/2.0.2/leaflet.awesome-markers.css"/>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/python-visualization/folium/folium/templates/leaflet.awesome.rotate.min.css"/>
+    
+            <meta name="viewport" content="width=device-width,
+                initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+            <style>
+                #map_41d6ae6db47a280adfbc53eb4315b3d3 {
+                    position: relative;
+                    width: 100.0%;
+                    height: 100.0%;
+                    left: 0.0%;
+                    top: 0.0%;
+                }
+                .leaflet-container { font-size: 1rem; }
+            </style>
+
+            <style>html, body {
+                width: 100%;
+                height: 100%;
+                margin: 0;
+                padding: 0;
+            }
+            </style>
+
+            <style>#map {
+                position:absolute;
+                top:0;
+                bottom:0;
+                right:0;
+                left:0;
+                }
+            </style>
+
+            <script>
+                L_NO_TOUCH = false;
+                L_DISABLE_3D = false;
+            </script>
+
+        
+</head>
+<body>
+    
+    
+            <div class="folium-map" id="map_41d6ae6db47a280adfbc53eb4315b3d3" ></div>
+        
+</body>
+<script>
+    
+    
+            var map_41d6ae6db47a280adfbc53eb4315b3d3 = L.map(
+                "map_41d6ae6db47a280adfbc53eb4315b3d3",
+                {
+                    center: [59.2166892, 39.9223692],
+                    crs: L.CRS.EPSG3857,
+                    ...{
+  "zoom": 13,
+  "zoomControl": true,
+  "preferCanvas": false,
+}
+
+                }
+            );
+
+            
+
+        
+    
+            var tile_layer_c91041d61b41782a4d6aad9da6310419 = L.tileLayer(
+                "https://tile.openstreetmap.org/{z}/{x}/{y}.png",
+                {
+  "minZoom": 0,
+  "maxZoom": 19,
+  "maxNativeZoom": 19,
+  "noWrap": false,
+  "attribution": "\u0026copy; \u003ca href=\"https://www.openstreetmap.org/copyright\"\u003eOpenStreetMap\u003c/a\u003e contributors",
+  "subdomains": "abc",
+  "detectRetina": false,
+  "tms": false,
+  "opacity": 1,
+}
+
+            );
+        
+    
+            tile_layer_c91041d61b41782a4d6aad9da6310419.addTo(map_41d6ae6db47a280adfbc53eb4315b3d3);
+        
+    
+            var marker_e1b125976edc89d4ca07ce41a0a0e2c0 = L.marker(
+                [59.2166892, 39.9223692],
+                {
+}
+            ).addTo(map_41d6ae6db47a280adfbc53eb4315b3d3);
+        
+    
+            var icon_8e08cbf133244f772b552a513b35721c = L.AwesomeMarkers.icon(
+                {
+  "markerColor": "red",
+  "iconColor": "white",
+  "icon": "home",
+  "prefix": "glyphicon",
+  "extraClasses": "fa-rotate-0",
+}
+            );
+        
+    
+        var popup_85d57a828e0fb720d1b1cda0981c5218 = L.popup({
+  "maxWidth": "100%",
+});
+
+        
+            
+                var html_ee7c0ed50c8f9be2b6fb117d24751574 = $(`<div id="html_ee7c0ed50c8f9be2b6fb117d24751574" style="width: 100.0%; height: 100.0%;">1. Вологда, улица Городской Вал, 24</div>`)[0];
+                popup_85d57a828e0fb720d1b1cda0981c5218.setContent(html_ee7c0ed50c8f9be2b6fb117d24751574);
+            
+        
+
+        marker_e1b125976edc89d4ca07ce41a0a0e2c0.bindPopup(popup_85d57a828e0fb720d1b1cda0981c5218)
+        ;
+
+        
+    
+    
+                marker_e1b125976edc89d4ca07ce41a0a0e2c0.setIcon(icon_8e08cbf133244f772b552a513b35721c);
+            
+    
+            var marker_1209230cd11eeaf0487249956e174cdd = L.marker(
+                [59.2270447, 39.9006025],
+                {
+}
+            ).addTo(map_41d6ae6db47a280adfbc53eb4315b3d3);
+        
+    
+            var icon_905dac24472d5c61b0b31337393c2a09 = L.AwesomeMarkers.icon(
+                {
+  "markerColor": "blue",
+  "iconColor": "white",
+  "icon": "info-sign",
+  "prefix": "glyphicon",
+  "extraClasses": "fa-rotate-0",
+}
+            );
+        
+    
+        var popup_fd53bd166780bece2ef904bee422cbc6 = L.popup({
+  "maxWidth": "100%",
+});
+
+        
+            
+                var html_7ad0e30d3c784b8385ef3199ed651651 = $(`<div id="html_7ad0e30d3c784b8385ef3199ed651651" style="width: 100.0%; height: 100.0%;">2. Вологда, улица мира 10</div>`)[0];
+                popup_fd53bd166780bece2ef904bee422cbc6.setContent(html_7ad0e30d3c784b8385ef3199ed651651);
+            
+        
+
+        marker_1209230cd11eeaf0487249956e174cdd.bindPopup(popup_fd53bd166780bece2ef904bee422cbc6)
+        ;
+
+        
+    
+    
+                marker_1209230cd11eeaf0487249956e174cdd.setIcon(icon_905dac24472d5c61b0b31337393c2a09);
+            
+    
+            var marker_140a2c370e1d0bacb4676326777d9940 = L.marker(
+                [59.2208579, 39.8879654],
+                {
+}
+            ).addTo(map_41d6ae6db47a280adfbc53eb4315b3d3);
+        
+    
+            var icon_39db9900bce3985564d478319907488e = L.AwesomeMarkers.icon(
+                {
+  "markerColor": "blue",
+  "iconColor": "white",
+  "icon": "info-sign",
+  "prefix": "glyphicon",
+  "extraClasses": "fa-rotate-0",
+}
+            );
+        
+    
+        var popup_a10cf3e2633cf0e786eb7043630cf2f6 = L.popup({
+  "maxWidth": "100%",
+});
+
+        
+            
+                var html_1bbb9853234be6aa025954a2bbf7f82d = $(`<div id="html_1bbb9853234be6aa025954a2bbf7f82d" style="width: 100.0%; height: 100.0%;">3. Вологда, улица горького, 74</div>`)[0];
+                popup_a10cf3e2633cf0e786eb7043630cf2f6.setContent(html_1bbb9853234be6aa025954a2bbf7f82d);
+            
+        
+
+        marker_140a2c370e1d0bacb4676326777d9940.bindPopup(popup_a10cf3e2633cf0e786eb7043630cf2f6)
+        ;
+
+        
+    
+    
+                marker_140a2c370e1d0bacb4676326777d9940.setIcon(icon_39db9900bce3985564d478319907488e);
+            
+    
+            var marker_19722c6babcde3c1e55da2e1707525d1 = L.marker(
+                [59.2166892, 39.9223692],
+                {
+}
+            ).addTo(map_41d6ae6db47a280adfbc53eb4315b3d3);
+        
+    
+            var icon_204d78a728250a066237372dad1bb06b = L.AwesomeMarkers.icon(
+                {
+  "markerColor": "blue",
+  "iconColor": "white",
+  "icon": "info-sign",
+  "prefix": "glyphicon",
+  "extraClasses": "fa-rotate-0",
+}
+            );
+        
+    
+        var popup_cfa785663e9a9503a15df73cb567c82a = L.popup({
+  "maxWidth": "100%",
+});
+
+        
+            
+                var html_231abcf6201157059c6e2a9735e9e11b = $(`<div id="html_231abcf6201157059c6e2a9735e9e11b" style="width: 100.0%; height: 100.0%;">4. Точка 4</div>`)[0];
+                popup_cfa785663e9a9503a15df73cb567c82a.setContent(html_231abcf6201157059c6e2a9735e9e11b);
+            
+        
+
+        marker_19722c6babcde3c1e55da2e1707525d1.bindPopup(popup_cfa785663e9a9503a15df73cb567c82a)
+        ;
+
+        
+    
+    
+                marker_19722c6babcde3c1e55da2e1707525d1.setIcon(icon_204d78a728250a066237372dad1bb06b);
+            
+    
+            var poly_line_a2978fd5b77698f3689dac0eb017ac1a = L.polyline(
+                [[59.2166892, 39.9223692], [59.2270447, 39.9006025], [59.2208579, 39.8879654], [59.2166892, 39.9223692]],
+                {"bubblingMouseEvents": true, "color": "green", "dashArray": null, "dashOffset": null, "fill": false, "fillColor": "green", "fillOpacity": 0.2, "fillRule": "evenodd", "lineCap": "round", "lineJoin": "round", "noClip": false, "opacity": 0.8, "smoothFactor": 1.0, "stroke": true, "weight": 5}
+            ).addTo(map_41d6ae6db47a280adfbc53eb4315b3d3);
+        
+</script>
+</html>
