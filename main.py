@@ -8,6 +8,8 @@ import json
 import threading
 import re
 import webbrowser
+import subprocess
+import sys
 
 # ========== ФАЙЛ ДЛЯ СОХРАНЕНИЯ НАСТРОЕК ==========
 CONFIG_FILE = "route_config.json"
@@ -104,10 +106,6 @@ class RouteOptimizerApp:
             return durations, None
 
     def optimize_multi_route(self, durations, num_vehicles=2, start_index=0):
-        """
-        Упрощенная версия оптимизации маршрутов (без ORTools)
-        Распределяет точки между курьерами по порядку
-        """
         n = len(durations)
 
         if num_vehicles > n - 1:
@@ -119,8 +117,7 @@ class RouteOptimizerApp:
         total_time = 0
         max_route_time = 0
 
-        # Распределяем точки между курьерами по очереди
-        points = list(range(1, n))  # все точки кроме стартовой
+        points = list(range(1, n))
         points_per_vehicle = len(points) // num_vehicles
         remainder = len(points) % num_vehicles
 
@@ -133,7 +130,6 @@ class RouteOptimizerApp:
             route = [start_index] + points[idx:idx + count] + [start_index]
             idx += count
 
-            # Считаем время
             route_time = 0
             for i in range(len(route) - 1):
                 route_time += durations[route[i]][route[i + 1]]
@@ -273,7 +269,8 @@ class RouteOptimizerApp:
                 max_seconds = int(max_time % 60)
 
                 add_output(f"   ⏱️  Общее время всех курьеров: {total_minutes} мин {total_seconds} сек\n")
-                add_output(f"   ⏱️  Самый долгий маршрут (Курьер {max_time_route}): {max_minutes} мин {max_seconds} сек\n")
+                add_output(
+                    f"   ⏱️  Самый долгий маршрут (Курьер {max_time_route}): {max_minutes} мин {max_seconds} сек\n")
                 add_output(f"   📦 Всего заказов: {len(addresses)}\n")
                 add_output(f"   🚚 Всего курьеров: {num_vehicles}\n")
                 add_output("=" * 70 + "\n")
@@ -306,18 +303,47 @@ def main(page: ft.Page):
     app = RouteOptimizerApp()
     map_buttons_container = ft.Column(spacing=5)
 
+    # ===== ФУНКЦИЯ ДЛЯ ОТКРЫТИЯ КАРТЫ (ИСПРАВЛЕННАЯ) =====
     def open_map(filename):
+        """Открывает HTML-файл в браузере принудительно"""
         try:
+            # Получаем абсолютный путь
             file_path = os.path.abspath(filename)
-            if os.path.exists(file_path):
-                webbrowser.open(file_path)
-                page.snack_bar = ft.SnackBar(ft.Text(f"🗺️ Карта открыта в браузере: {filename}"))
-                page.snack_bar.open = True
-                page.update()
-            else:
+            if not os.path.exists(file_path):
                 page.snack_bar = ft.SnackBar(ft.Text(f"❌ Файл не найден: {filename}"))
                 page.snack_bar.open = True
                 page.update()
+                return
+
+            # Преобразуем путь в URL для браузера
+            file_url = f"file://{file_path.replace('\\', '/')}"
+
+            # Пытаемся открыть через системный вызов
+            try:
+                if sys.platform == 'win32':
+                    os.startfile(file_path)
+                elif sys.platform == 'darwin':  # macOS
+                    subprocess.run(['open', file_path])
+                else:  # Linux, Android
+                    # Пробуем разные браузеры
+                    browsers = ['xdg-open', 'google-chrome', 'chromium', 'firefox']
+                    for browser in browsers:
+                        try:
+                            subprocess.run([browser, file_path], check=True)
+                            break
+                        except:
+                            continue
+                    else:
+                        # Если ничего не работает — используем webbrowser
+                        webbrowser.open(file_url)
+            except:
+                # Запасной вариант
+                webbrowser.open(file_url)
+
+            page.snack_bar = ft.SnackBar(ft.Text(f"🗺️ Карта открывается в браузере"))
+            page.snack_bar.open = True
+            page.update()
+
         except Exception as e:
             page.snack_bar = ft.SnackBar(ft.Text(f"❌ Ошибка: {e}"))
             page.snack_bar.open = True
@@ -481,6 +507,7 @@ def main(page: ft.Page):
         thread.daemon = True
         thread.start()
 
+    # ===== СОЗДАНИЕ ИНТЕРФЕЙСА =====
     page.add(
         ft.Container(
             content=ft.Column([
